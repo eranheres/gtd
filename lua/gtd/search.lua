@@ -1,5 +1,7 @@
 local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
+local actions = require("telescope.actions")
+local action_state = require("telescope.actions.state")
 local previewers = require("telescope.previewers")
 local utils = require("telescope.previewers.utils")
 local config = require("telescope.config").values
@@ -45,7 +47,7 @@ M.search_task = function(opts)
 						return {
 							value = parsed,
 							display = txt[1],
-							ordinal = "yyy",
+							ordinal = parsed.data.lines.text,
 						}
 					end
 				end,
@@ -63,6 +65,18 @@ M.search_task = function(opts)
 				end,
 			}),
 			sorter = config.generic_sorter(),
+      attach_mappings = function(prompt_bufnr, map)
+        actions.select_default:replace(function()
+          local selection = action_state.get_selected_entry()
+          log.debug("Selected", selection)
+          log.debug("Path", selection.value.data.path.text)
+          actions.close(prompt_bufnr)
+          vim.api.nvim_command("edit " .. selection.value.data.path.text)
+          vim.api.nvim_win_set_cursor(0, {selection.value.data.line_number, 0})
+        end)
+        return true
+      end,
+          
 		})
 		:find()
 end
