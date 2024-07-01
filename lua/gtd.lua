@@ -1,5 +1,6 @@
 -- main module file
-local module = require("plugin_name.module")
+local create = require("gtd.create")
+local search = require("gtd.search")
 
 ---@class Config
 ---@field opt string Your config option
@@ -20,8 +21,7 @@ M.setup = function(args)
   M.config = vim.tbl_deep_extend("force", M.config, args or {})
 end
 
-M.hello = function()
-  return module.my_first_function(M.config.opt)
-end
+M.search = search
+M.create = create
 
 return M
