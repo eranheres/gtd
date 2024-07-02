@@ -1,6 +1,7 @@
 -- main module file
 local create = require("gtd.create")
 local search = require("gtd.search")
+local utils = require("gtd.utils")
 
 ---@class Config
 ---@field opt string Your config option
