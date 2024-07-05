@@ -1,26 +1,17 @@
 local Menu = require("nui.menu")
 local ui = require("gtd.ui")
 local log = require("plenary.log"):new()
+local task_line = require("gtd.taskline")
 log.level = "debug"
 
 ---@class CustomModule
 local M = {}
 
-local function done_function(opts)
-  log.debug("done_function", opts)
-  local task = TaskLine:new()
+local function done_function(task)
+  log.debug("done_function", task)
   task.status = " "
-  task.text = opts.text
-  task.due_date = opts.due
-  task.priority = opts.priority
-  task.assignee = opts.assignee
-  local str = task:to_string({
-    status = true,
-    text = true,
-    due_date = true,
-    priority = true,
-    assignee = true,
-  })
+  task.created_date = os.date("%Y-%m-%d")
+  local str = task_line.to_string(task)
   log.debug("Task string", str)
   local bufnr = vim.api.nvim_get_current_buf()
   local cursor = vim.api.nvim_win_get_cursor(0)
@@ -41,16 +32,30 @@ local yesno = {
   Menu.item("No", { value = false }),
 }
 
-M.new_task = function()
+M.nnew_task = function()
   ui.input_prompt("📝 Task Line", "text", function()
-    ui.date_picker("📅 Due Date", "due", function()
+    ui.date_picker("📅 Due Date", "due_date", function()
       ui.options_picker("⏫ Task Priority", "priority", priorities, function()
-        ui.input_prompt("🤵 Assignee", "assignee", function()
-          done_function(opts)
-        end, opts)
+        done_function(opts)
       end, opts)
     end, opts)
   end, opts)
+end
+
+M.nnew_quick_task = function()
+  local current_line = vim.api.nvim_get_current_line()
+  if #current_line > 0 then
+    vim.api.nvim_command("normal! $o")
+  end
+  local task = {
+    text = "",
+    status = " ",
+    created_date = os.date("%Y-%m-%d"),
+  }
+  local text = task_line.to_string(task)
+  vim.api.nvim_put({ text }, "c", true, true)
+  vim.api.nvim_command("normal! 22h")
+  vim.api.nvim_command("startinsert")
 end
 
 return M

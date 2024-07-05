@@ -6,16 +6,10 @@ local utils = require("gtd.utils")
 local config = {
   opt = "Hello!",
 }
-
+---
 ---@class MyModule
 local M = {}
 
-M.ui = require("gtd.ui")
-M.create = require("gtd.create")
-M.search = require("gtd.search")
-M.createline = require("gtd.createline")
-M.modifyline = require("gtd.modifyline")
----
 ---
 ---@type Config
 M.config = config

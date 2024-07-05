@@ -2,6 +2,7 @@ local log = require("plenary.log"):new()
 log.level = "debug"
 
 local Input = require("nui.input")
+local Menu = require("nui.menu")
 local event = require("nui.utils.autocmd").event
 local Calendar = require("orgmode.objects.calendar")
 local Date = require("orgmode.objects.date")
@@ -45,7 +46,6 @@ M.input_prompt = function(title, field, callback, opts)
     input:unmount()
   end)
 end
-M.input_prompt("test", "test", function() end, {})
 
 M.date_picker = function(title, field_name, callback, opts)
   Calendar.new({
@@ -60,6 +60,8 @@ M.date_picker = function(title, field_name, callback, opts)
       return nil
     end)
 end
+
+-- M.date_picker("text", "due", function() end, {})
 
 M.options_picker = function(title, field_name, options, callback, opts)
   local menu = Menu({
@@ -100,4 +102,14 @@ M.options_picker = function(title, field_name, options, callback, opts)
   menu:mount()
 end
 
+--[[
+M.options_picker("Test", "test", {
+  Menu.item("A", { value = "A" }),
+  Menu.item("B", { value = "B" }),
+  Menu.item("C", { value = "C" }),
+}, function()
+  log.debug("Done")
+end, {})
+]]
+--
 return M

@@ -44,4 +44,20 @@ M.meeting_note = function()
   -- vim.api.nvim_command("normal! Go")
 end
 
+M.project_note = function()
+  local note_name = util.input("Project name")
+  if not note_name or note_name == "" then
+    return
+  end
+  local note = client:create_note({
+    title = note_name,
+    id = note_name,
+    template = "Project Template",
+  })
+  client:open_note(note, {
+    sync = true,
+    line = 5,
+  })
+end
+
 return M

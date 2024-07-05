@@ -20,6 +20,7 @@ M.from_string = function(str)
   if task_line.text ~= nil then
     task_line.text = task_line.text:gsub("%s*$", "")
   end
+  task_line.created_date = str:match("|.*created:%[(.-)%]")
   task_line.due_date = str:match("|.*due:%[(.-)%]")
   task_line.assignee = str:match("|.*@%[(.-)%]")
   task_line.followup_date = str:match("|.*~:%[(.-)%]")
@@ -47,12 +48,17 @@ M.to_string = function(task_line)
 
   if
     M.is_field_valid(task_line.due_date)
+    or M.is_field_valid(task_line.created_date)
     or M.is_field_valid(task_line.assignee)
     or M.is_field_valid(task_line.followup_date)
     or M.is_field_valid(task_line.again_num)
     or M.is_field_valid(task_line.note)
   then
     str = str .. " |"
+  end
+
+  if M.is_field_valid(task_line.created_date) then
+    str = str .. " created:[" .. task_line.created_date.. "]"
   end
 
   if M.is_field_valid(task_line.due_date) then
