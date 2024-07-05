@@ -1,6 +1,4 @@
 -- main module file
-local create = require("gtd.create")
-local search = require("gtd.search")
 local utils = require("gtd.utils")
 
 ---@class Config
@@ -12,6 +10,13 @@ local config = {
 ---@class MyModule
 local M = {}
 
+M.ui = require("gtd.ui")
+M.create = require("gtd.create")
+M.search = require("gtd.search")
+M.createline = require("gtd.createline")
+M.modifyline = require("gtd.modifyline")
+---
+---
 ---@type Config
 M.config = config
 
@@ -21,8 +26,5 @@ M.config = config
 M.setup = function(args)
   M.config = vim.tbl_deep_extend("force", M.config, args or {})
 end
-
-M.search = search
-M.create = create
 
 return M
