@@ -1,6 +1,7 @@
 local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local actions = require("telescope.actions")
+local ui = require("gtd.ui")
 local action_state = require("telescope.actions.state")
 local previewers = require("telescope.previewers")
 local utils = require("telescope.previewers.utils")
@@ -25,6 +26,7 @@ end
 
 M.date_format = "YYYY-MM-DD"
 M.search_task = function(opts)
+  opts = opts or {}
   pickers
     .new({}, {
       prompt_title = "Find Files",
@@ -39,7 +41,7 @@ M.search_task = function(opts)
             "-z", -- Output null-separated results
             -- "-U", -- Allow searching across multiple lines
             "-P", -- Use Perl-compatible regex
-            "^- \\[ \\].*due:\\[",
+            "^- \\[ |>\\].*due:\\[",
           }
           return cmd
         end,
@@ -52,10 +54,14 @@ M.search_task = function(opts)
             if not task_line.is_valid(task) then
               return
             end
-            log.debug(task.due_date)
-            if task.due_date > os.date("%Y-%m-%d") then
+            if opts.due and (task.due_date == nil or task.due_date > os.date("%Y-%m-%d")) then
               return
             end
+            log.debug(task.assignee)
+            if opts.assignee and (task.assignee == nil or task.assignee ~= opts.assignee) then
+              return
+            end
+            log.debug("Adding ", task)
             return {
               value = parsed,
               display = txt,
@@ -103,5 +109,27 @@ M.search_task = function(opts)
     })
     :find()
 end
-M.search_task()
+
+M.search_open_all = function()
+  M.search_task()
+end
+
+M.search_open_assignee = function()
+  local opts = {}
+  ui.input_prompt("🤵 Assignee ", "assignee", function()
+    M.search_task({ assignee = opts.assignee })
+  end, opts)
+end
+
+M.search_due_all = function()
+  M.search_task({ due = true })
+end
+
+M.search_due_assignee = function()
+  local opts = {}
+  ui.input_prompt("🤵 Assignee ", "assignee", function()
+    M.search_task({ due = true, assignee = opts.assignee })
+  end, opts)
+end
+M.search_due_all()
 return M

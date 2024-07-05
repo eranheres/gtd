@@ -58,7 +58,7 @@ M.to_string = function(task_line)
   end
 
   if M.is_field_valid(task_line.created_date) then
-    str = str .. " created:[" .. task_line.created_date.. "]"
+    str = str .. " created:[" .. task_line.created_date .. "]"
   end
 
   if M.is_field_valid(task_line.due_date) then
