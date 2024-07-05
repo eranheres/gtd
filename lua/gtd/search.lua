@@ -64,7 +64,7 @@ M.search_task = function(opts)
             log.debug("Adding ", task)
             return {
               value = parsed,
-              display = txt,
+              display = task.text .. " | " .. (task.assignee or "Mine"),
               ordinal = parsed.data.lines.text,
             }
           end
@@ -73,11 +73,19 @@ M.search_task = function(opts)
       previewer = previewers.new_buffer_previewer({
         title = "Tasks",
         define_preview = function(self, entry)
-          --local rich_text = "```markdown\n" .. entry.value.data.lines.text .. "\n```"
-          local rich_text = entry.value.data.lines.text
+          local task = task_line.from_string(entry.value.data.lines.text)
+          local rich_text = "" -- entry.value.data.lines.text
+          rich_text = rich_text .. "\n " .. "# [TASK]: " .. task.text
+          rich_text = rich_text .. "\n "
+          rich_text = rich_text .. "\n " .. "[CREATED] : " .. (task.created_date or "")
+          rich_text = rich_text .. "\n " .. "[ASSIGNEE]: " .. (task.assignee or "")
+          rich_text = rich_text .. "\n " .. "[DUE DATE]: " .. (task.due_date or "")
+          rich_text = rich_text .. "\n " .. "[FOLLOWUP]: " .. (task.followup_date or "")
+          local file_line = entry.value.data.path.text .. ":" .. entry.value.data.line_number
+          rich_text = rich_text .. "\n " .. "[SOURCE]  : " .. file_line
+          rich_text = "```markdown\n" .. rich_text .. "\n```"
           local txt = vim.split(rich_text, "\n")
           --vim.api.nvim_buf_set_lines(self.state.bufnr, 0, 0, true, { entry.txt[1] })
-          log.debug(txt)
           vim.api.nvim_buf_set_lines(self.state.bufnr, 0, 0, true, txt)
           utils.highlighter(self.state.bufnr, "markdown")
         end,
