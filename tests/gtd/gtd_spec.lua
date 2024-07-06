@@ -2,14 +2,6 @@
 local task_line = require 'gtd.taskline'
 
 describe("TaskLine", function()
-    -- describe("Check task completion", function()
-    --     it("update fields", function()
-    --         local line = "- [ ] (A) this is a task"
-    --         local updated_line = modify_line.complete_task({}, line)
-    --         local expected_line = "- [x] (A) this is a task | note:[[" .. os.date("%Y-%m-%d") .. "]]"
-    --         assert.are.equal(expected_line, updated_line)
-    --     end)
-    -- end)
 
     describe("TaskLine", function()
         it("update fields", function()
@@ -42,6 +34,84 @@ describe("TaskLine", function()
 
     end)
 
+    it("test invalid scheduled task", function()
+        local task = task_line.from_string("- [r] bla bla | schedule:[D]")
+        -- vim.print(task, "\n")
+        assert.is_true(task_line.is_schedule_valid(task))
+        task = task_line.from_string("- [ ] bla bla | schedule:[D]")
+        assert.is_false(task_line.is_schedule_valid(task))
+        task = task_line.from_string("- [ ] bla bla | schedule:[D-1]")
+        assert.is_false(task_line.is_schedule_valid(task))
+        task = task_line.from_string("- [r] bla bla | schedule:[R]")
+        assert.is_false(task_line.is_schedule_valid(task))
+        task = task_line.from_string("- [r] bla bla | schedule:[W-3,8]")
+        assert.is_false(task_line.is_schedule_valid(task))
+        task = task_line.from_string("- [r] bla bla | schedule:W-7,3,2")
+        assert.is_true(task_line.is_schedule_valid(task))
+        task = task_line.from_string("- [r] bla bla | schedule:M-1,12,38")
+        assert.is_false(task_line.is_schedule_valid(task))
+        task = task_line.from_string("- [r] bla bla | schedule:M-7,3,2")
+        assert.is_true(task_line.is_schedule_valid(task))
+        task = task_line.from_string("- [r] bla bla | schedule:Y-1/1,1/312")
+        assert.is_false(task_line.is_schedule_valid(task))
+        task = task_line.from_string("- [r] bla bla | schedule:Y-1/1,1/312")
+        assert.is_false(task_line.is_schedule_valid(task))
+        task = task_line.from_string("- [r] bla bla | schedule:Y-1/1,1")
+        assert.is_false(task_line.is_schedule_valid(task))
+        task = task_line.from_string("- [r] bla bla | schedule:Y-7/1,12/31,1/1")
+        assert.is_true(task_line.is_schedule_valid(task))
+        task = task_line.from_string("- [r] this is a scheduled task but without schedule")
+        assert.is_nil(task.due_date)
+    end)
+
+     it("parses a string correctly with daily schedule", function()
+         local input_str = "- [r] (A) this is a completed task | schedule:[D]"
+         local task = task_line.from_string(input_str)
+         assert.is_true(task_line.is_valid(task))
+         assert.is_true(task_line.is_schedule_valid(task))
+         assert.are.equal("r", task.status)
+         assert.are.equal("A", task.priority)
+         assert.are.equal("this is a completed task", task.text)
+         assert.are.equal("D", task.schedule.period)
+         assert.are.equal(0, #task.schedule.times)
+     end)
+
+     it("parses a string correctly with weekly schedule", function()
+         local input_str = "- [r] (A) this is a completed task | schedule:W-2,3"
+         local task = task_line.from_string(input_str)
+         assert.is_true(task_line.is_valid(task))
+         assert.is_true(task_line.is_schedule_valid(task))
+         assert.are.equal("r", task.status)
+         assert.are.equal("A", task.priority)
+         assert.are.equal("this is a completed task", task.text)
+         assert.are.equal("W", task.schedule.period)
+         assert.are.has_same({"2","3"}, task.schedule.times)
+     end)
+
+     it("parses a string correctly with monthly schedule", function()
+         local input_str = "- [r] (A) this is a completed task | schedule:M-21,3"
+         local task = task_line.from_string(input_str)
+         assert.is_true(task_line.is_valid(task))
+         assert.is_true(task_line.is_schedule_valid(task))
+         assert.are.equal("r", task.status)
+         assert.are.equal("A", task.priority)
+         assert.are.equal("this is a completed task", task.text)
+         assert.are.equal("M", task.schedule.period)
+         assert.are.has_same({"21","3"}, task.schedule.times)
+     end)
+
+     it("parses a string correctly with yearly schedule", function()
+         local input_str = "- [r] (A) this is a completed task | schedule:Y-12/2"
+         local task = task_line.from_string(input_str)
+         assert.is_true(task_line.is_valid(task))
+         assert.is_true(task_line.is_schedule_valid(task))
+         assert.are.equal("r", task.status)
+         assert.are.equal("A", task.priority)
+         assert.are.equal("this is a completed task", task.text)
+         assert.are.equal("Y", task.schedule.period)
+         assert.are.has_same({"12/2"}, task.schedule.times)
+     end)
+
      it("basic valid string parses", function()
          local task = task_line.from_string("- [x] (A) this is a task")
          assert.are.equal("x", task.status)
@@ -71,20 +141,18 @@ describe("TaskLine", function()
      end)
 
      it("parses a string correctly with date", function()
-         local input_str = "- [x] (A) this is a completed task | created:[2024-02-02] again:+2d note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
+         local input_str = "- [x] (A) this is a completed task | created:[2024-02-02] note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
          local task = task_line.from_string(input_str)
          assert.is_true(task_line.is_valid(task))
          assert.are.equal("x", task.status)
          assert.are.equal("A", task.priority)
          assert.are.equal("this is a completed task", task.text)
          assert.are.equal("2024-02-02", task.created_date)
-         assert.are.equal("2", task.again_num)
-         assert.are.equal("d", task.again_period)
          assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.note)
      end)
 
      it("parses a string correctly", function()
-         local input_str = "- [x] (A) this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] again:+2d note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
+         local input_str = "- [x] (A) this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
          local task = task_line.from_string(input_str)
          assert.is_true(task_line.is_valid(task))
          assert.are.equal("x", task.status)
@@ -93,44 +161,11 @@ describe("TaskLine", function()
          assert.are.equal("2024-02-02", task.due_date)
          assert.are.equal("Sagi", task.assignee)
          assert.are.equal("2024-02-01", task.followup_date)
-         assert.are.equal("2", task.again_num)
-         assert.are.equal("d", task.again_period)
          assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.note)
      end)
 
-    -- it("converts fields to a string correctly", function()
-    --     local task = task_line.from_string("- [x] (A) this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] again:+2d note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]")
-    --     assert.is_true(task_line.is_valid(task))
-    --     local fields = {
-    --         due_date = true,
-    --         assignee = true,
-    --         followup_date = true,
-    --         again_num = true,
-    --         again_period = true,
-    --         note = true
-    --     }
-    --     local output_str = task_line.to_string(fields)
-    --     local expected_str = "- [x] this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] again:+2d note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
-    --     assert.are.equal(expected_str, output_str)
-    -- end)
-
-    -- it("converts partial fields to a string correctly", function()
-    --     local task = task_line.from_string("- [x] (A) this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] again:+2d note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]")
-    --     assert.is_true(task_line.is_valid(task))
-    --     local fields = {
-    --         due_date = true,
-    --         priority = true,
-    --         assignee = true,
-    --         followup_date = true,
-    --         note = true
-    --     }
-    --     local output_str = task_line.to_string(fields)
-    --     local expected_str = "- [x] (A) this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
-    --     assert.are.equal(expected_str, output_str)
-    -- end)
-
     it("returns fields correctly", function()
-        local task = task_line.from_string("- [x] (A) this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] again:+2d note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]")
+        local task = task_line.from_string("- [x] (A) this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]")
         assert.is_true(task_line.is_valid(task))
         assert.are.equal("x", task.status)
         assert.are.equal("A", task.priority)
@@ -138,11 +173,9 @@ describe("TaskLine", function()
         assert.are.equal("2024-02-02", task.due_date)
         assert.are.equal("Sagi", task.assignee)
         assert.are.equal("2024-02-01", task.followup_date)
-        assert.are.equal("2", task.again_num)
-        assert.are.equal("d", task.again_period)
         assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.note)
 
-        task = task_line.from_string("- [x] this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] again:+2d note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]")
+        task = task_line.from_string("- [x] this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]")
         assert.is_true(task_line.is_valid(task))
         assert.are.equal("x", task.status)
         assert.is_nil(task.priority)
@@ -150,13 +183,11 @@ describe("TaskLine", function()
         assert.are.equal("2024-02-02", task.due_date)
         assert.are.equal("Sagi", task.assignee)
         assert.are.equal("2024-02-01", task.followup_date)
-        assert.are.equal("2", task.again_num)
-        assert.are.equal("d", task.again_period)
         assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.note)
     end)
 
      it("parses invalid lines", function()
-         local input_str = "- [x] (A) this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] again:+2d note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
+         local input_str = "- [x] (A) this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
          local task = task_line.from_string(input_str)
          assert.is_true(task_line.is_valid(task))
          task = task_line.from_string("- [ ] valid simple task")
