@@ -156,6 +156,27 @@ M.complete_task = function(info, line)
   end, opts)
 end
 
+M.complete_repeated_task = function(info)
+  local line = vim.api.nvim_get_current_line()
+  local task = task_line.from_string(line)
+  if not task.is_schedule_valid() then
+    vim.print("Task line is not a valid repeated task")
+    return
+  end
+  local completion_date = os.date("%Y-%m-%d")
+  local due_date = task_line.next_due_date(line)
+  local updated_fields = { note = completion_date, due_date = due_date }
+  local task = M.update_task_line(updated_fields)
+  local opts = {}
+  ui.input_prompt("📝 Completion note", "note", function()
+    M.set_create_log({
+      title = task.text,
+      status = "Repeat completed",
+      note = opts.note or "",
+    })
+  end, opts)
+end
+
 M.assigne_task = function()
   if not M.is_current_line_valid() then
     vim.print("Line is not a valid task line")
