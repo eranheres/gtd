@@ -137,7 +137,7 @@ M.to_string = function(task_line)
 
   if task_line.schedule ~= nil and task_line.schedule.period ~= nil then
     str = str .. " schedule:[" .. task_line.schedule.period
-    if task_line.schedule.times ~= nil then
+    if task_line.schedule.times ~= nil and #task_line.schedule.times ~= 0 then
       str = str .. "-" .. vim.fn.join(task_line.schedule.times, ",")
     end
     str = str .. "]"

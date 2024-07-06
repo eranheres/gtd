@@ -161,8 +161,11 @@ describe("TaskLine", function()
     local task = task_line.from_string("- [r] bla bla | schedule:[Y-7/1,12/31,1/1]")
     assert.is_true(task_line.is_valid(task))
     table.insert(task.schedule.times, "8/8")
-    vim.print(task, "\n")
     assert.are.equal("- [r] bla bla | schedule:[Y-7/1,12/31,1/1,8/8]", task_line.to_string(task))
+
+    local task = task_line.from_string("- [r] bla bla | schedule:[D]")
+    assert.is_true(task_line.is_valid(task))
+    assert.are.equal("- [r] bla bla | schedule:[D]", task_line.to_string(task))
   end)
 
   it("parses a string correctly", function()
