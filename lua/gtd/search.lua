@@ -41,7 +41,7 @@ M.search_task = function(opts)
             "-z", -- Output null-separated results
             -- "-U", -- Allow searching across multiple lines
             "-P", -- Use Perl-compatible regex
-            "^- \\[ |>\\].*due:\\[",
+            "^- \\[ |>|r\\].*due:\\[",
           }
           return cmd
         end,
