@@ -1,6 +1,3 @@
+
 - [ ] this is a task | due:[2024-07-07]
-- [ ] this is a second task | due:[2024-07-07]
-- [ ] this is a due task | due:[2024-06-07] @[Mika]
-[ ] this is invalid task | due:[2024-07-07] @[Mika]
-- [>] (B) Test task | created:[2024-07-06] due:[2024-07-04 Thu] @[Mika] ~:[2024-07-07 Sun]
-- [ ] (C) this is a new task | created:[2024-07-05] due:[2024-06-07 Sun]
+- [ ] (A) Test due task | created:[2024-07-07] due:[2024-07-07 Sun]

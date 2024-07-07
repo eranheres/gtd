@@ -38,7 +38,13 @@ M.from_string = function(str)
     task_line.text = task_line.text:gsub("%s*$", "")
   end
   task_line.created_date = str:match("|.*created:%[(.-)%]")
+  if task_line.created_date ~= nil then
+    task_line.created_date = task_line.created_date:match("(%d%d%d%d%-%d%d%-%d%d).*")
+  end
   task_line.due_date = str:match("|.*due:%[(.-)%]")
+  if task_line.due_date ~= nil then
+    task_line.due_date = task_line.due_date:match("(%d%d%d%d%-%d%d%-%d%d).*")
+  end
   task_line.assignee = str:match("|.*@%[(.-)%]")
   task_line.followup_date = str:match("|.*~:%[(.-)%]")
   task_line.schedule = parse_schedule(str)

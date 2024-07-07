@@ -143,6 +143,12 @@ describe("TaskLine", function()
     assert.are.equal("z", task.status)
     assert.are.equal("this is a task", task.text)
     assert.are.equal("2024-02-02", task.due_date)
+
+    task = task_line.from_string("- [ ] (A) Test due task | created:[2024-07-07] due:[2024-07-07 Sun]")
+    task_line.is_valid(task)
+    assert.are.equal(" ", task.status)
+    assert.are.equal("Test due task", task.text)
+    assert.are.equal("2024-07-07", task.due_date)
   end)
 
   it("parses a string correctly with date", function()
