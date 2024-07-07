@@ -151,10 +151,6 @@ M.to_string = function(task_line)
   return str
 end
 
-local function datestr(time)
-  return os.date("%Y-%m-%d", time)
-end
-
 M.next_due_date = function(task, cur_time)
   local current_time = cur_time or os.time()
   --vim.print(os.date("%Y-%m-%d", current_time), "\n")

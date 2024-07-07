@@ -57,11 +57,9 @@ M.search_task = function(opts)
             if opts.due and (task.due_date == nil or task.due_date > os.date("%Y-%m-%d")) then
               return
             end
-            log.debug(task.assignee)
             if opts.assignee and (task.assignee == nil or task.assignee ~= opts.assignee) then
               return
             end
-            log.debug("Adding ", task)
             return {
               value = parsed,
               display = task.text .. " | " .. (task.assignee or "Mine"),
