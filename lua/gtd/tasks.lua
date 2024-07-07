@@ -68,9 +68,9 @@ M.set_create_log = function(info)
   local new_section = {
     "",
     "# TASK: " .. info.title,
-    "LOG   : " .. info.note,
-    "STATUS: " .. info.status,
-    "UPDATE: [[" .. os.date("%Y-%m-%d") .. "]]",
+    "LOG   : " .. info.log,
+    "ACTION: " .. info.action,
+    "DATE  : [[" .. os.date("%Y-%m-%d") .. "]]",
     "SOURCE: [[" .. current_note.id .. "]]",
   }
   note = notes[1]
@@ -114,8 +114,8 @@ M.new_task = function()
         vim.api.nvim_buf_set_lines(bufnr, line_nr, line_nr, false, { str })
         M.set_create_log({
           title = opts.text,
-          status = "Created",
-          note = "",
+          action = "Created",
+          log = "Spriority to ("..opts.priority..") and due date to ("..opts.priority..")",
         })
       end, opts)
     end, opts)
@@ -160,8 +160,8 @@ M.complete_task = function()
   ui.input_prompt(" 📝 Completion note ", "note", function()
     M.set_create_log({
       title = task.text,
-      status = "Completed",
-      note = opts.note or "",
+      action = "Completed",
+      log = opts.note or "",
     })
   end, opts)
 end
@@ -181,8 +181,8 @@ M.complete_repeated_task = function()
   ui.input_prompt(" 📝 Repeated completion note ", "note", function()
     M.set_create_log({
       title = task.text,
-      status = "Repeat completed",
-      note = opts.note or "",
+      action = "Repeat completed",
+      log = opts.note or "",
     })
   end, opts)
 end
@@ -199,10 +199,44 @@ M.assigne_task = function()
       local task = M.update_task_line(opts)
       M.set_create_log({
         title = task.text,
-        status = "Assigned",
-        note = "Assigned to [" .. opts.assignee .. "] on the [" .. date .. "]",
+        action = "Assigned",
+        log = "Assigned to [" .. opts.assignee .. "] on the [" .. date .. "]",
       })
     end, opts)
+  end, opts)
+end
+
+M.set_due_date = function()
+  if not M.is_current_line_valid() then
+    vim.print("Line is not a valid task line")
+    return
+  end
+  local date = os.date("%Y-%m-%d")
+  local opts = {}
+  ui.date_picker("📅 Due Date", "due_date", function()
+    local task = M.update_task_line(opts)
+    M.set_create_log({
+      title = task.text,
+      action = "Set due date",
+      log = "Set due date to [" .. date .. "]",
+    })
+  end, opts)
+end
+
+M.set_priority = function()
+  if not M.is_current_line_valid() then
+    vim.print("Line is not a valid task line")
+    return
+  end
+  local date = os.date("%Y-%m-%d")
+  local opts = {}
+  ui.options_picker("⏫ Task Priority", "priority", priorities, function()
+    local task = M.update_task_line(opts)
+    M.set_create_log({
+      title = task.text,
+      action = "Set task priority",
+      log = "Set priority to (" .. opts.priority .. ")",
+    })
   end, opts)
 end
 
