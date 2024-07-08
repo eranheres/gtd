@@ -1,5 +1,6 @@
 -- Import the TaskLine class
 local task_line = require("gtd.taskline")
+local utils = require("gtd.utils")
 
 local function tstr(str)
   local year, month, day = str:match("(%d+)-(%d+)-(%d+)")
@@ -153,30 +154,32 @@ describe("TaskLine", function()
 
   it("parses a string correctly with date", function()
     local input_str =
-      "- [x] (A) this is a completed task | created:[2024-02-02] note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
+      "- [x] (A) this is a completed task | created:[2024-02-02] log:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
     local task = task_line.from_string(input_str)
     assert.is_true(task_line.is_valid(task))
     assert.are.equal("x", task.status)
     assert.are.equal("A", task.priority)
     assert.are.equal("this is a completed task", task.text)
     assert.are.equal("2024-02-02", task.created_date)
-    assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.note)
+    assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.log)
   end)
 
   it("to string adding schedule", function()
     local task = task_line.from_string("- [r] bla bla | schedule:[Y-7/1,12/31,1/1]")
     assert.is_true(task_line.is_valid(task))
+    task.task_id = "ABC"
     table.insert(task.schedule.times, "8/8")
-    assert.are.equal("- [r] bla bla | schedule:[Y-7/1,12/31,1/1,8/8]", task_line.to_string(task))
+    assert.are.equal("- [r] bla bla | schedule:[Y-7/1,12/31,1/1,8/8] id:[ABC]", task_line.to_string(task))
 
-    local task = task_line.from_string("- [r] bla bla | schedule:[D]")
+    task = task_line.from_string("- [r] bla bla | schedule:[D]")
+    task.task_id = "ABC"
     assert.is_true(task_line.is_valid(task))
-    assert.are.equal("- [r] bla bla | schedule:[D]", task_line.to_string(task))
+    assert.are.equal("- [r] bla bla | schedule:[D] id:[ABC]", task_line.to_string(task))
   end)
 
   it("parses a string correctly", function()
     local input_str =
-      "- [x] (A) this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
+      "- [x] (A) this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] log:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
     local task = task_line.from_string(input_str)
     assert.is_true(task_line.is_valid(task))
     assert.are.equal("x", task.status)
@@ -185,12 +188,12 @@ describe("TaskLine", function()
     assert.are.equal("2024-02-02", task.due_date)
     assert.are.equal("Sagi", task.assignee)
     assert.are.equal("2024-02-01", task.followup_date)
-    assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.note)
+    assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.log)
   end)
 
   it("returns fields correctly", function()
     local task = task_line.from_string(
-      "- [x] (A) this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
+      "- [x] (A) this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] log:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
     )
     assert.is_true(task_line.is_valid(task))
     assert.are.equal("x", task.status)
@@ -199,10 +202,10 @@ describe("TaskLine", function()
     assert.are.equal("2024-02-02", task.due_date)
     assert.are.equal("Sagi", task.assignee)
     assert.are.equal("2024-02-01", task.followup_date)
-    assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.note)
+    assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.log)
 
     task = task_line.from_string(
-      "- [x] this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] note:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
+      "- [x] this is a completed task | due:[2024-02-02] @[Sagi] ~:[2024-02-01] log:[[2024-02-02][2024-02-02-Tasks-Notes.md]]"
     )
     assert.is_true(task_line.is_valid(task))
     assert.are.equal("x", task.status)
@@ -211,7 +214,7 @@ describe("TaskLine", function()
     assert.are.equal("2024-02-02", task.due_date)
     assert.are.equal("Sagi", task.assignee)
     assert.are.equal("2024-02-01", task.followup_date)
-    assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.note)
+    assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.log)
   end)
 
   it("parses invalid lines", function()
@@ -291,5 +294,12 @@ describe("TaskLine", function()
     assert.are.equal("2024-07-01", next)
     next = task_line.next_due_date(task, tstr("2024-08-12"))
     assert.are.equal("2025-03-01", next)
+  end)
+
+  it("Check list inject", function()
+    local lst = {"A", "B", "C", "D" }
+    assert.are.has_same(utils.list_inject(lst, {"1", "2"}, 1), {"1", "2", "A", "B", "C", "D" })
+    assert.are.has_same(utils.list_inject(lst, {"1", "2"}, 4), {"A", "B", "C", "1", "2", "D" })
+    assert.are.has_same(utils.list_inject(lst, {"1", "2"}, 5), {"A", "B", "C", "D", "1", "2" })
   end)
 end)

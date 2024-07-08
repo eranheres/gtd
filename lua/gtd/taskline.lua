@@ -48,13 +48,20 @@ M.from_string = function(str)
   task_line.assignee = str:match("|.*@%[(.-)%]")
   task_line.followup_date = str:match("|.*~:%[(.-)%]")
   task_line.schedule = parse_schedule(str)
-  task_line.note = str:match("|.*note:%[%[(.-)%]%]")
+  task_line.log = str:match("|.*log:%[%[(.-)%]%]")
+  task_line.task_id = str:match("|.*id:%[(.-)%]")
+  if task_line.task_id == nil then
+    task_line.task_id = utils.guid()
+  end
   return task_line
 end
 
 -- Checks if the task is valid
 M.is_valid = function(task_line)
-  return task_line.status ~= nil and task_line.status ~= "" and task_line.text ~= nil and task_line.text ~= ""
+  return task_line.status ~= nil
+    and task_line.status ~= ""
+    and task_line.text ~= nil
+    and task_line.task_id ~= nil
 end
 
 local function all_values_in_range(values, from, to)
@@ -70,25 +77,25 @@ local function all_values_in_range(values, from, to)
   return true
 end
 
-M.is_schedule_valid = function(task_line)
+M.is_schedule_valid = function(task)
   if
-    task_line.is_valid == false
-    or task_line.schedule == nil
-    or task_line.schedule.times == nil
-    or task_line.schedule.period == nil
-    or task_line.status ~= "r"
+    M.is_valid(task) == false
+    or task.schedule == nil
+    or task.schedule.times == nil
+    or task.schedule.period == nil
+    or task.status ~= "r"
   then
     return false
   end
 
-  if task_line.schedule.period == "W" and not all_values_in_range(task_line.schedule.times, 1, 7) then
+  if task.schedule.period == "W" and not all_values_in_range(task.schedule.times, 1, 7) then
     return false
   end
-  if task_line.schedule.period == "M" and not all_values_in_range(task_line.schedule.times, 1, 31) then
+  if task.schedule.period == "M" and not all_values_in_range(task.schedule.times, 1, 31) then
     return false
   end
-  if task_line.schedule.period == "Y" and not all_values_in_range(task_line.schedule.times, 1, 12) then
-    for _, v in ipairs(task_line.schedule.times) do
+  if task.schedule.period == "Y" and not all_values_in_range(task.schedule.times, 1, 12) then
+    for _, v in ipairs(task.schedule.times) do
       local date = vim.split(v, "/")
       if #date ~= 2 then
         return false
@@ -107,6 +114,9 @@ end
 
 -- Method to convert fields into a string
 M.to_string = function(task_line)
+  if not M.is_valid(task_line) then
+    return ""
+  end
   local str = "- [" .. task_line.status .. "]"
   if M.is_field_valid(task_line.priority) then
     str = str .. " (" .. task_line.priority .. ")"
@@ -150,8 +160,8 @@ M.to_string = function(task_line)
     str = str .. "]"
   end
 
-  if M.is_field_valid(task_line.note) then
-    str = str .. " note:[[" .. task_line.note .. "]]"
+  if M.is_field_valid(task_line.task_id) then
+    str = str .. " id:[" .. task_line.task_id.. "]"
   end
 
   return str

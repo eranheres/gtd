@@ -4,6 +4,15 @@ log.level = "debug"
 local M = {}
 
 -- General helpers
+M.guid = function()
+    local template ='xxxxxxx'
+    return string.gsub(template, '[xy]', function (c)
+        local v = (c == 'x') and math.random(0, 0xf) or math.random(8, 0xb)
+        return string.format('%x', v)
+    end)
+end
+
+-- list helpers
 M.map = function(list, f)
   local new_list = {}
   for i, v in ipairs(list) do
@@ -22,12 +31,14 @@ M.min = function (list)
   return min
 end
 
-M.generate_guid = function()
-    local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-    return string.gsub(template, '[xy]', function (c)
-        local v = (c == 'x') and math.random(0, 0xf) or math.random(8, 0xb)
-        return string.format('%x', v)
-    end)
+M.list_inject = function(dest, source, pos)
+  local first = vim.list_slice(dest, 0, pos-1)
+  local last  = vim.list_slice(dest, pos)
+  local target = {}
+  target = vim.list_extend(target, first)
+  target = vim.list_extend(target, source)
+  target = vim.list_extend(target, last)
+  return target
 end
 
 -- Date related helpers
