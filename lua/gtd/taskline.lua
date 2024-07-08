@@ -125,11 +125,11 @@ M.to_string = function(task_line)
 
   if
     M.is_field_valid(task_line.due_date)
+    or M.is_field_valid(task_line.task_id)
     or M.is_field_valid(task_line.created_date)
     or M.is_field_valid(task_line.assignee)
     or M.is_field_valid(task_line.followup_date)
     or M.is_field_valid(task_line.again_num)
-    or M.is_field_valid(task_line.note)
     or M.is_field_valid(task_line.schedule)
     or (task_line.schedule ~= nil and task_line.schedule.period ~= nil)
   then

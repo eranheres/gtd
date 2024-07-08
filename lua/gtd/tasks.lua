@@ -38,7 +38,7 @@ local priorities = {
   Menu.item("Urgent (A)", { value = "A" }),
   Menu.item("High (B)", { value = "B" }),
   Menu.item("Normal (C)", { value = "C" }),
-  Menu.item("Low (C)", { value = "D" }), -- default value
+  Menu.item("Low (D)", { value = "D" }), -- default value
 }
 
 local yesno = {
