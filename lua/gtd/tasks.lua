@@ -50,9 +50,9 @@ local yesno = {
 M.new_task = function()
   local opts = { task_id = utils.guid() }
   ui.input_prompt("📝 Task Line", "text", "", function()
-      if opts.text == nil then
-        return
-      end
+    if opts.text == nil then
+      return
+    end
     ui.date_picker("📅 Due Date", "due_date", function()
       if opts.due_date == nil then
         return
@@ -266,6 +266,38 @@ M.add_log = function()
       log = "manual log:" .. opts.text,
     })
   end, opts)
+end
+
+M.color_due = function()
+  local bufnr = vim.api.nvim_get_current_buf()
+
+  -- Clear previous highlights in the namespace
+  local namespace_name = "overduetask"
+  local namespace = vim.api.nvim_get_namespaces()[namespace_name]
+  if namespace == nil then
+    namespace = vim.api.nvim_create_namespace(namespace_name)
+  end
+  vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
+
+  -- Get the lines in the buffer
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  vim.print(#lines)
+  vim.cmd([[highlight overduetask ctermbg=red guibg=#fca683]])
+  -- Iterate over each line to find matches
+  for lnum, line in ipairs(lines) do
+    local task = task_line.from_string(line)
+    if
+      task
+      and task_line.is_valid(task)
+      and (task.status == " " or task.status == "r" or task.status == ">")
+      and task.due_date
+      and task.due_date <= os.date("%Y-%m-%d")
+    then
+      vim.print("valid:" .. lnum)
+      vim.api.nvim_buf_add_highlight(bufnr, namespace, "overduetask", lnum - 1, 0, -1)
+    else
+    end
+  end
 end
 
 return M
