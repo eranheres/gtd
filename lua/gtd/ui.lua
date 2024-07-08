@@ -55,7 +55,9 @@ M.date_picker = function(title, field_name, callback, opts)
   })
     :open()
     :next(function(new_date)
-      opts[field_name] = new_date:to_string()
+      if new_date ~= nil then
+        opts[field_name] = new_date:to_string()
+      end
       callback()
       return nil
     end)

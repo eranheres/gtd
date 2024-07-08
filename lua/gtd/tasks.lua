@@ -50,9 +50,18 @@ local yesno = {
 M.new_task = function()
   local opts = { task_id = utils.guid() }
   ui.input_prompt("📝 Task Line", "text", "", function()
+      if opts.text == nil then
+        return
+      end
     ui.date_picker("📅 Due Date", "due_date", function()
+      if opts.due_date == nil then
+        return
+      end
       ui.options_picker("⏫ Task Priority", "priority", priorities, function()
         opts.status = " "
+        if opts.priority == nil then
+          return
+        end
         opts.created_date = os.date("%Y-%m-%d")
         local str = task_line.to_string(opts)
         local bufnr = vim.api.nvim_get_current_buf()
@@ -112,6 +121,9 @@ M.complete_task = function()
   task = M.update_task_line(updated_fields)
   local opts = {}
   ui.input_prompt(" 📝 Completion note ", "note", "", function()
+    if opts.note == nil then
+      return
+    end
     tasklog.set_create_log({
       task_id = task.task_id,
       title = task.text,
@@ -133,6 +145,9 @@ M.complete_repeated_task = function()
   task = M.update_task_line(updated_fields)
   local opts = {}
   ui.input_prompt(" 📝 Repeated completion note ", "note", "", function()
+    if opts.note == nil then
+      return
+    end
     tasklog.set_create_log({
       task_id = task.task_id,
       title = task.text,
@@ -151,7 +166,13 @@ M.assigne_task = function()
   local date = os.date("%Y-%m-%d")
   local opts = { status = ">" }
   ui.input_prompt("🤵 Assignee ", "assignee", function()
+    if opts.assignee == nil then
+      return
+    end
     ui.date_picker("📅 Followup Date", "followup_date", function()
+      if opts.followup_date == nil then
+        return
+      end
       local task = M.update_task_line(opts)
       tasklog.set_create_log({
         task_id = task.task_id,
@@ -172,6 +193,9 @@ M.set_due_date = function()
   local date = os.date("%Y-%m-%d")
   local opts = {}
   ui.date_picker("📅 Due Date", "due_date", function()
+    if opts.due_date == nil then
+      return
+    end
     local task = M.update_task_line(opts)
     tasklog.set_create_log({
       task_id = task.task_id,
@@ -190,6 +214,9 @@ M.set_priority = function()
   end
   local opts = {}
   ui.options_picker(" ⏫ Task Priority ", "priority", priorities, function()
+    if opts.priority == nil then
+      return
+    end
     local task = M.update_task_line(opts)
     tasklog.set_create_log({
       task_id = task.task_id,
@@ -206,14 +233,17 @@ M.set_text = function()
     vim.print("This line is not a valid task line for modification")
     return {}
   end
-  local opts = { }
+  local opts = {}
   ui.input_prompt(" 📝 Task description ", "text", current_task.text, function()
+    if opts.text == nil then
+      return
+    end
     local task = M.update_task_line(opts)
     tasklog.set_create_log({
       task_id = task.task_id,
       title = task.text,
       action = "Modified task",
-      log = "Modified to: " .. opts.text
+      log = "Modified to: " .. opts.text,
     })
   end, opts)
 end
@@ -224,13 +254,16 @@ M.add_log = function()
     vim.print("This line is not a valid task line for modification")
     return {}
   end
-  local opts = { }
-  ui.input_prompt(" 📝 Log text ", "text", "" , function()
+  local opts = {}
+  ui.input_prompt(" 📝 Log text ", "text", "", function()
+    if opts.text == nil then
+      return
+    end
     tasklog.set_create_log({
       task_id = task.task_id,
       title = task.text,
       action = "Manual log",
-      log = "manual log:" .. opts.text
+      log = "manual log:" .. opts.text,
     })
   end, opts)
 end
