@@ -14,7 +14,7 @@ log.level = "debug"
 ---@class CustomModule
 local M = {}
 
-M.input_prompt = function(title, field, callback, opts)
+M.input_prompt = function(title, field, default_value, callback, opts)
   local input = Input({
     position = "50%",
     size = { width = "85%" },
@@ -25,7 +25,7 @@ M.input_prompt = function(title, field, callback, opts)
     win_options = { winhighlight = "Normal:Normal,FloatBorder:Normal" },
   }, {
     prompt = "> ",
-    default_value = "",
+    default_value = default_value,
     on_close = function()
       callback()
     end,
