@@ -281,7 +281,6 @@ M.color_due = function()
 
   -- Get the lines in the buffer
   local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  vim.print(#lines)
   vim.cmd([[highlight overduetask ctermbg=red guibg=#fca683]])
   -- Iterate over each line to find matches
   for lnum, line in ipairs(lines) do
@@ -293,7 +292,6 @@ M.color_due = function()
       and task.due_date
       and task.due_date <= os.date("%Y-%m-%d")
     then
-      vim.print("valid:" .. lnum)
       vim.api.nvim_buf_add_highlight(bufnr, namespace, "overduetask", lnum - 1, 0, -1)
     else
     end
