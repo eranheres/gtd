@@ -112,18 +112,22 @@ M.complete_task = function()
     vim.print("This line is not a valid task line for modification")
     return {}
   end
+  if task.status == "x" then
+    vim.print("Task already completed")
+    return
+  end
   if task.status == "r" then
     M.complete_repeated_task()
     return
   end
   local completion_date = os.date("%Y-%m-%d")
   local updated_fields = { status = "x", note = completion_date }
-  task = M.update_task_line(updated_fields)
   local opts = {}
   ui.input_prompt(" 📝 Completion note ", "note", "", function()
     if opts.note == nil then
       return
     end
+    task = M.update_task_line(updated_fields)
     tasklog.set_create_log({
       task_id = task.task_id,
       title = task.text,
@@ -142,12 +146,12 @@ M.complete_repeated_task = function()
   local completion_date = os.date("%Y-%m-%d")
   local due_date = task_line.next_due_date(task)
   local updated_fields = { note = completion_date, due_date = due_date }
-  task = M.update_task_line(updated_fields)
   local opts = {}
   ui.input_prompt(" 📝 Repeated completion note ", "note", "", function()
     if opts.note == nil then
       return
     end
+    task = M.update_task_line(updated_fields)
     tasklog.set_create_log({
       task_id = task.task_id,
       title = task.text,
@@ -201,7 +205,7 @@ M.set_due_date = function()
       task_id = task.task_id,
       title = task.text,
       action = "Set due date",
-      log = "Set due date to [" .. date .. "]",
+      log = "Set due date to [" .. task.due_date .. "]",
     })
   end, opts)
 end

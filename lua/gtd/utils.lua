@@ -1,15 +1,15 @@
 local log = require("plenary.log"):new()
-log.level = "debug"
+log.level = "info"
 
 local M = {}
 
 -- General helpers
 M.guid = function()
-    local template ='xxxxxxx'
-    return string.gsub(template, '[xy]', function (c)
-        local v = (c == 'x') and math.random(0, 0xf) or math.random(8, 0xb)
-        return string.format('%x', v)
-    end)
+  local template = "xxxxxxx"
+  return string.gsub(template, "[xy]", function(c)
+    local v = (c == "x") and math.random(0, 0xf) or math.random(8, 0xb)
+    return string.format("%x", v)
+  end)
 end
 
 -- list helpers
@@ -21,7 +21,7 @@ M.map = function(list, f)
   return new_list
 end
 
-M.min = function (list)
+M.min = function(list)
   local min = list[1]
   for _, v in ipairs(list) do
     if v < min then
@@ -32,8 +32,8 @@ M.min = function (list)
 end
 
 M.list_inject = function(dest, source, pos)
-  local first = vim.list_slice(dest, 0, pos-1)
-  local last  = vim.list_slice(dest, pos)
+  local first = vim.list_slice(dest, 0, pos - 1)
+  local last = vim.list_slice(dest, pos)
   local target = {}
   target = vim.list_extend(target, first)
   target = vim.list_extend(target, source)
@@ -90,5 +90,65 @@ M.get_following_year_time = function(time, monthandday)
 end
 
 
+-- process and bash
 
+--- One shot job
+---@param cmd string[]: Command list to execute.
+---@param opts? table: stuff
+--         @key cmd string[]: Command list to execute.
+--         @key entry_maker function Optional: function(line: string) => table
+--         @key cwd string
+---@param callback? function: function(code, signal, out: string, err: string)
+M.execute_job = function(cmd, opts, callback)
+  opts = opts or {}
+  if not cmd or #cmd == 0 then
+    log.error("no command")
+    return
+  end
+
+  local uv = vim.uv
+  local stdin = uv.new_pipe()
+  local stdout = uv.new_pipe()
+  local stderr = uv.new_pipe()
+  local out_dump = ""
+  local err_dump = ""
+  local args = {}
+  if #cmd > 1 then
+    args = vim.list_slice(cmd, 2)
+  end
+  local handle, pid = uv.spawn(cmd[1], {
+    args = args,
+    stdio = { stdin, stdout, stderr },
+  }, function(code, signal) -- on exit
+    if callback then
+      callback(code, signal, out_dump, err_dump)
+    end
+  end)
+  log.debug("process:", handle, pid)
+  uv.read_start(stdout, function(err, data)
+    assert(not err, err)
+    if data then
+      out_dump = out_dump .. data
+    end
+  end)
+
+  uv.read_start(stderr, function(err, data)
+    assert(not err, err)
+    if data then
+      err_dump = err_dump .. data
+    end
+  end)
+  -- Coroutine to wait for process to finish
+end
+
+-- Usage example: running a grep command
+--[[
+local command = { "rg", "--json", "--maxdepth", "1", "debug", "." }
+M.execute_job(command, {}, function(code, signal, out, err)
+  vim.print("code", code)
+  vim.print("signal", signal)
+  vim.print("out", out)
+  vim.print("err", err)
+end)
+]]--
 return M
