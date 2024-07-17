@@ -169,7 +169,7 @@ M.assigne_task = function()
   end
   local date = os.date("%Y-%m-%d")
   local opts = { status = ">" }
-  ui.input_prompt("🤵 Assignee ", "assignee", function()
+  ui.input_prompt("🤵 Assignee ", "assignee", "", function()
     if opts.assignee == nil then
       return
     end
@@ -200,13 +200,19 @@ M.set_due_date = function()
     if opts.due_date == nil then
       return
     end
-    local task = M.update_task_line(opts)
-    tasklog.set_create_log({
-      task_id = task.task_id,
-      title = task.text,
-      action = "Set due date",
-      log = "Set due date to [" .. task.due_date .. "]",
-    })
+    ui.input_prompt(" 📝 Reason ", "note", "", function()
+      local reason = ""
+      if opts.note ~= nil then
+        reason = " | Reason: " .. opts.note
+      end
+      local task = M.update_task_line(opts)
+      tasklog.set_create_log({
+        task_id = task.task_id,
+        title = task.text,
+        action = "Set due date",
+        log = "New date:[" .. task.due_date .. "]" .. reason,
+      })
+    end, opts)
   end, opts)
 end
 
