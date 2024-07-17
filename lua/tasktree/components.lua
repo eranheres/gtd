@@ -13,6 +13,8 @@
 local highlights = require("neo-tree.ui.highlights")
 local common = require("neo-tree.sources.common.components")
 
+local gtd_obs = require("gtd.obsidian")
+
 local M = {}
 
 M.custom = function(config, node, state)
@@ -28,6 +30,7 @@ M.icon = function(config, node, state)
   local icon = config.default or " "
   local padding = config.padding or " "
   local highlight = config.highlight or highlights.FILE_ICON
+
   if node.type == "directory" then
     highlight = highlights.DIRECTORY_ICON
     if node:is_expanded() then
@@ -40,14 +43,21 @@ M.icon = function(config, node, state)
       icon = "🔁"
     else
       local icon_map = {
-        A= "⏫",
-        B= "🔼",
-        C= "🔽",
-        D= "⏬",
+        A = "⏫",
+        B = "🔼",
+        C = "🔽",
+        D = "⏬",
       }
       icon = icon_map[node.extra.task.priority] or icon
     end
+    local project_icon = gtd_obs.get_project_icon(node.path)
+    if project_icon and icon then
+      icon = project_icon .. " " .. icon
+    else
+      icon = "   " .. icon
+    end
   end
+
   return {
     text = icon .. padding,
     highlight = highlight,

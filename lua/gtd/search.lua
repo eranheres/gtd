@@ -2,6 +2,7 @@ local log = require("plenary.log"):new()
 
 local task_line = require("gtd.taskline")
 local utils = require("gtd.utils")
+local gtd_obs = require("gtd.obsidian")
 
 log.level = "info"
 

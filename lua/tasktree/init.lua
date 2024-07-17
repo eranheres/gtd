@@ -8,40 +8,6 @@ local M = {
   name = "basic",
   display_name = "Basic",
 }
-local get_debug_items = function()
-  return {
-    {
-      id = "1",
-      name = "root",
-      type = "directory",
-      children = {
-        {
-          id = "1.1",
-          name = "child1",
-          path = "test",
-          extra = { data = "sdfsd" },
-          type = "directory",
-          children = {
-            {
-              id = "1.1.1",
-              path = "test",
-              extra = { data = "sdfsd" },
-              name = "child1.1 (you'll need a custom renderer to display this properly)",
-              type = "file",
-            },
-          },
-          --   {
-          --     id = "1.1.2",
-          --     name = "child1.2",
-          --     type = "file",
-          --     stat_provider = "example-custom",
-          --   },
-          -- },
-        },
-      },
-    },
-  }
-end
 
 local get_items = function()
   local all = {}
@@ -60,7 +26,7 @@ local get_items = function()
     }
     local count = 0
     for j, task in pairs(all_results) do
-      if task.due_date and (task.due_date == date_str or (count == 0 and task.due_date < date_str)) then
+      if task.due_date and (task.due_date == date_str or (i == 1 and task.due_date < date_str)) then
         -- log.info(task.due_date)
         count = count + 1
         local item = {
