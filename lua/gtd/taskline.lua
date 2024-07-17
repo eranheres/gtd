@@ -10,7 +10,7 @@ M.update_fields = function(task_line, fields)
 end
 
 local function parse_schedule(line)
-  local str = line:match("|.*schedule:%[(.-)%]")
+  local str = line:match("|.*schedule:%[(.-)%]") or line:match("|.*#:%[(.-)%]")
   if str == nil then
     return nil
   end
@@ -41,12 +41,11 @@ M.from_string = function(str)
   if task_line.created_date ~= nil then
     task_line.created_date = task_line.created_date:match("(%d%d%d%d%-%d%d%-%d%d).*")
   end
-  task_line.due_date = str:match("|.*due:%[(.-)%]")
+  task_line.due_date = str:match("|.*due:%[(.-)%]") or str:match("|.*~:%[(.-)%]")
   if task_line.due_date ~= nil then
     task_line.due_date = task_line.due_date:match("(%d%d%d%d%-%d%d%-%d%d).*")
   end
   task_line.assignee = str:match("|.*@%[(.-)%]")
-  task_line.followup_date = str:match("|.*~:%[(.-)%]")
   task_line.schedule = parse_schedule(str)
   task_line.log = str:match("|.*log:%[%[(.-)%]%]")
   task_line.task_id = str:match("|.*id:%[(.-)%]")
@@ -128,7 +127,6 @@ M.to_string = function(task_line)
     or M.is_field_valid(task_line.task_id)
     or M.is_field_valid(task_line.created_date)
     or M.is_field_valid(task_line.assignee)
-    or M.is_field_valid(task_line.followup_date)
     or M.is_field_valid(task_line.again_num)
     or M.is_field_valid(task_line.schedule)
     or (task_line.schedule ~= nil and task_line.schedule.period ~= nil)
@@ -136,24 +134,20 @@ M.to_string = function(task_line)
     str = str .. " |"
   end
 
-  if M.is_field_valid(task_line.created_date) then
-    str = str .. " created:[" .. task_line.created_date .. "]"
-  end
+  -- if M.is_field_valid(task_line.created_date) then
+  --   str = str .. " created:[" .. task_line.created_date .. "]"
+  -- end
 
   if M.is_field_valid(task_line.due_date) then
-    str = str .. " due:[" .. task_line.due_date .. "]"
+    str = str .. " ~:[" .. task_line.due_date .. "]"
   end
 
   if M.is_field_valid(task_line.assignee) then
     str = str .. " @[" .. task_line.assignee .. "]"
   end
 
-  if M.is_field_valid(task_line.followup_date) then
-    str = str .. " ~:[" .. task_line.followup_date .. "]"
-  end
-
   if task_line.schedule ~= nil and task_line.schedule.period ~= nil then
-    str = str .. " schedule:[" .. task_line.schedule.period
+    str = str .. " #:[" .. task_line.schedule.period
     if task_line.schedule.times ~= nil and #task_line.schedule.times ~= 0 then
       str = str .. "-" .. vim.fn.join(task_line.schedule.times, ",")
     end

@@ -169,12 +169,12 @@ M.assigne_task = function()
   end
   local date = os.date("%Y-%m-%d")
   local opts = { status = ">" }
-  ui.input_prompt("🤵 Assignee ", "assignee", "", function()
+  ui.input_prompt(" 🤵 Assignee ", "assignee", "", function()
     if opts.assignee == nil then
       return
     end
-    ui.date_picker("📅 Followup Date", "followup_date", function()
-      if opts.followup_date == nil then
+    ui.date_picker(" 📅 On Date ", "due_date", function()
+      if opts.due_date == nil then
         return
       end
       local task = M.update_task_line(opts)

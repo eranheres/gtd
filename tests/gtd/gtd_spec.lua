@@ -169,12 +169,12 @@ describe("TaskLine", function()
     assert.is_true(task_line.is_valid(task))
     task.task_id = "ABC"
     table.insert(task.schedule.times, "8/8")
-    assert.are.equal("- [r] bla bla | schedule:[Y-7/1,12/31,1/1,8/8] id:[ABC]", task_line.to_string(task))
+    assert.are.equal("- [r] bla bla | #:[Y-7/1,12/31,1/1,8/8] id:[ABC]", task_line.to_string(task))
 
     task = task_line.from_string("- [r] bla bla | schedule:[D]")
     task.task_id = "ABC"
     assert.is_true(task_line.is_valid(task))
-    assert.are.equal("- [r] bla bla | schedule:[D] id:[ABC]", task_line.to_string(task))
+    assert.are.equal("- [r] bla bla | #:[D] id:[ABC]", task_line.to_string(task))
   end)
 
   it("parses a string correctly", function()
@@ -187,7 +187,6 @@ describe("TaskLine", function()
     assert.are.equal("this is a completed task", task.text)
     assert.are.equal("2024-02-02", task.due_date)
     assert.are.equal("Sagi", task.assignee)
-    assert.are.equal("2024-02-01", task.followup_date)
     assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.log)
   end)
 
@@ -201,7 +200,6 @@ describe("TaskLine", function()
     assert.are.equal("this is a completed task", task.text)
     assert.are.equal("2024-02-02", task.due_date)
     assert.are.equal("Sagi", task.assignee)
-    assert.are.equal("2024-02-01", task.followup_date)
     assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.log)
 
     task = task_line.from_string(
@@ -213,7 +211,6 @@ describe("TaskLine", function()
     assert.are.equal("this is a completed task", task.text)
     assert.are.equal("2024-02-02", task.due_date)
     assert.are.equal("Sagi", task.assignee)
-    assert.are.equal("2024-02-01", task.followup_date)
     assert.are.equal("2024-02-02][2024-02-02-Tasks-Notes.md", task.log)
   end)
 
