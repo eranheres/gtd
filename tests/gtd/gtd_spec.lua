@@ -273,6 +273,8 @@ describe("TaskLine", function()
     assert.are.equal("2024-07-15", next)
     next = task_line.next_due_date(task, tstr("2024-07-20"))
     assert.are.equal("2024-08-10", next)
+    next = task_line.next_due_date(task, tstr("2024-07-10"))
+    assert.are.equal("2024-07-15", next)
   end)
 
   it("Check repeated task next date yearly", function()
@@ -291,6 +293,12 @@ describe("TaskLine", function()
     assert.are.equal("2024-07-01", next)
     next = task_line.next_due_date(task, tstr("2024-08-12"))
     assert.are.equal("2025-03-01", next)
+
+    task = task_line.from_string("- [r] pay social security | ~:[2024-07-21] #:[Y-01/21,04/21,07/21,10/21] id:[ff97300]")
+    assert.is_true(task_line.is_schedule_valid(task))
+    next = task_line.next_due_date(task, tstr("2024-07-21"))
+    assert.are.equal("2024-10-21", next)
+
   end)
 
   it("Check list inject", function()

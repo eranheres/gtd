@@ -59,7 +59,8 @@ M.get_following_weekday_time = function(time, weekday)
 end
 
 M.get_following_month_time = function(time, monthday)
-  local current_date = os.date("*t", time)
+  local ntime = M.get_following_day_time(time)
+  local current_date = os.date("*t", ntime)
   local year = current_date.year
   local month = current_date.month
   if current_date.day > monthday then
@@ -79,7 +80,8 @@ M.get_following_year_time = function(time, monthandday)
   if month == nil or day == nil then
     return 0
   end
-  local current_date = os.date("*t", time)
+  local ntime = M.get_following_day_time(time)
+  local current_date = os.date("*t", ntime)
   local year = current_date.year
   if current_date.month > month then
     year = year + 1

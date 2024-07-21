@@ -98,7 +98,7 @@ M.new_quick_task = function()
   })
   local text = task_line.to_string(task)
   vim.api.nvim_put({ text }, "c", true, true)
-  vim.api.nvim_command("normal! 35h")
+  vim.api.nvim_command("normal! 14h")
   vim.api.nvim_command("startinsert")
 end
 
