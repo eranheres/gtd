@@ -91,15 +91,14 @@ M.get_following_year_time = function(time, monthandday)
   return os.time({ year = year, month = month, day = day })
 end
 
+---@class gtd.ExecuteJobOpts
+---@field entry_maker function|? function(line: string) => table
+---@field cwd string|? Current working directory
 
--- process and bash
 
 --- One shot job
 ---@param cmd string[]: Command list to execute.
----@param opts? table: stuff
---         @key cmd string[]: Command list to execute.
---         @key entry_maker function Optional: function(line: string) => table
---         @key cwd string
+---@param opts? gtd.ExecuteJobOpts: execution options 
 ---@param callback? function: function(code, signal, out: string, err: string)
 M.execute_job = function(cmd, opts, callback)
   opts = opts or {}

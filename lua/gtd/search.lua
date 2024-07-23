@@ -2,7 +2,6 @@ local log = require("plenary.log"):new()
 
 local task_line = require("gtd.taskline")
 local utils = require("gtd.utils")
-local gtd_obs = require("gtd.obsidian")
 
 log.level = "info"
 
@@ -26,7 +25,7 @@ M.search_command = {
   -- "--maxdepth 1",
   "-z", -- Output null-separated results
   --"-P", -- Use Perl-compatible regex
-  "^- \\[ |>|r\\].*",
+  "^- \\[ |>|r\\].*\\|.*",
   ".",
 }
 
@@ -49,7 +48,7 @@ local rg_json_to_tasks = function(lines)
       return
     end
     --log.debug(parsed)
-    if parsed and parsed.type == "match" and detect_date_in_string(parsed.data.lines.text) then
+    if parsed and parsed.type == "match" then -- and detect_date_in_string(parsed.data.lines.text) then
       local txt = parsed.data.lines.text
       log.debug("Parsed:", txt)
       local task = task_line.from_string(txt)
@@ -73,7 +72,8 @@ M.search_async = function(opts, callback)
   end)
 end
 
-M.search_sync = function(opts, callback)
+---@param opts? gtd.ExecuteJobOpts: execution options 
+M.search_sync = function(opts)
   local done = false
   local entries = {}
   M.search_async(opts, function(res)
