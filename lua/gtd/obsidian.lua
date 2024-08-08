@@ -19,4 +19,15 @@ M.get_project_icon = function(path)
   return icon
 end
 
+M.get_project_name = function(path)
+  local note = Note.from_file(path)
+  if not note then
+    vim.print("Current buf is not a note")
+    return
+  end
+	local frontmatter = note:frontmatter()
+  local icon = frontmatter.project
+  return icon
+end
+
 return M

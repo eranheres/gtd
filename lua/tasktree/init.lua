@@ -13,6 +13,7 @@ local get_items = function()
   local all = {}
   local all_results = search.search_sync()
   local time = os.time()
+  local non_repeat_count = 0
   for i = 1, 10 do
     local node_id = "1." .. i
     local date_str = os.date("%Y-%m-%d", time)
@@ -28,6 +29,9 @@ local get_items = function()
     for j, task in pairs(all_results) do
       if task.due_date and (task.due_date == date_str or (i == 1 and task.due_date < date_str)) then
         -- log.info(task.due_date)
+        if task.status ~= "r" then
+          non_repeat_count = non_repeat_count + 1
+        end
         count = count + 1
         local item = {
           id = node_id .. "." .. count,
@@ -51,7 +55,7 @@ local get_items = function()
   return {
     {
       id = "1",
-      name = "root",
+      name = "Tasks (" .. non_repeat_count .. ")",
       type = "directory",
       --stat_provider = "tasktree-custom",
       children = all,

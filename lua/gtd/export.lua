@@ -1,6 +1,5 @@
 local search = require("gtd.search")
-local taskline = require("gtd.taskline")
-local utils = require("gtd.utils")
+local gtd_obs = require("gtd.obsidian")
 
 local M = {}
 
@@ -10,10 +9,17 @@ M.to_lines = function(opts)
   local date_str = os.date("%Y-%m-%d", time)
   local lines = {
     "# Tasks for " .. date_str,
-    ""
+    "",
   }
+  local project_name
   for i, task in pairs(results) do
     if task.due_date and task.due_date <= date_str then
+      local project = gtd_obs.get_project_name(task.path)
+      if project ~= project_name then
+        project_name = project
+        table.insert(lines, "")
+        table.insert(lines, "## " .. project_name)
+      end
       local line = "- [ ] " .. task.text
       table.insert(lines, line)
     end
@@ -37,32 +43,32 @@ end
 --
 -- Function to save current buffer as a PDF
 M.save_buffer_as_pdf = function(buf, pdf_path)
-    -- Get the current buffer number
-    --local buf = vim.api.nvim_get_current_buf()
+  -- Get the current buffer number
+  --local buf = vim.api.nvim_get_current_buf()
 
-    -- Get the lines of the buffer
-    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+  -- Get the lines of the buffer
+  local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 
-    -- Create a temporary file to save the buffer content
-    local temp_filename = vim.fn.tempname() .. ".md"
-    local temp_file = io.open(temp_filename, "w")
+  -- Create a temporary file to save the buffer content
+  local temp_filename = vim.fn.tempname() .. ".md"
+  local temp_file = io.open(temp_filename, "w")
 
-    -- Write the buffer content to the temporary file
-    for _, line in ipairs(lines) do
-        temp_file:write(line .. "\n")
-    end
-    temp_file:close()
+  -- Write the buffer content to the temporary file
+  for _, line in ipairs(lines) do
+    temp_file:write(line .. "\n")
+  end
+  temp_file:close()
 
-    -- Command to convert the temporary file to a PDF
-    local cmd = string.format("pandoc %s -o \"%s\"", temp_filename, pdf_path)
+  -- Command to convert the temporary file to a PDF
+  local cmd = string.format('pandoc %s -o "%s"', temp_filename, pdf_path)
 
-    -- Execute the command
-    os.execute(cmd)
+  -- Execute the command
+  os.execute(cmd)
 
-    -- Optionally, remove the temporary file
-    os.remove(temp_filename)
+  -- Optionally, remove the temporary file
+  os.remove(temp_filename)
 
-    print("Buffer saved as PDF: " .. pdf_path)
+  print("Buffer saved as PDF: " .. pdf_path)
 end
 
 M.to_pdf = function(pdf_path, opts)
