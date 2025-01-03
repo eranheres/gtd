@@ -22,7 +22,7 @@ local setup_neotree = function()
             "filesystem",
             "buffers",
             "git_status",
-            "example",
+            -- "example",
             "tasktree"
         },
         example = {
