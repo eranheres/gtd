@@ -71,7 +71,7 @@ M.new_task = function()
         tasklog.set_create_log({
           task_id = opts.task_id,
           title = opts.text,
-          action = "Created",
+          action = "Created  ",
           log = "Priority to (" .. opts.priority .. ") and due date to (" .. opts.due_date .. ")",
         })
       end, opts)
@@ -181,7 +181,7 @@ M.assigne_task = function()
       tasklog.set_create_log({
         task_id = task.task_id,
         title = task.text,
-        action = "Assigned",
+        action = "Assigned ",
         log = "Assigned to [" .. opts.assignee .. "] on the [" .. date .. "]",
       })
     end, opts)
@@ -209,7 +209,7 @@ M.set_due_date = function()
       tasklog.set_create_log({
         task_id = task.task_id,
         title = task.text,
-        action = "Set due date",
+        action = "Scheduled",
         log = "New date:[" .. task.due_date .. "]" .. reason,
       })
     end, opts)

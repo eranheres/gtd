@@ -50,9 +50,9 @@ local find_task_last_line = function(task_id, anchor_links)
   end
   local task_last_line = 0
   if max == 0 then
-    task_last_line = anchor_links[task_id].line + 3 -- 3 for task record size
+    task_last_line = anchor_links[task_id].line + 4 -- 3 for task record size
   else
-    task_last_line = anchor_links[log_id_prefix .. max].line + 4 -- 4 for log record size
+    task_last_line = anchor_links[log_id_prefix .. max].line + 2
   end
   return task_last_line, max
 end
@@ -93,6 +93,7 @@ M.set_create_log = function(info, d_note_id)
           "# Task " .. info.task_id,
           "TASK: " .. info.title,
           "SOURCE: [[" .. current_note_id .. "]]",
+          "LOG:",
         }
       end
 
@@ -105,15 +106,43 @@ M.set_create_log = function(info, d_note_id)
       end
 
       vim.list_extend(new_section, {
-        "### Log record " .. (log_index + 1),
-        "LOG   : " .. info.log,
-        "ACTION: " .. info.action,
-        "TIME  : [[" .. os.date("%Y-%m-%d") .. "]]",
+        --"### Log record " .. (log_index + 1),
+        --"LOG   : " .. info.log,
+        --"ACTION: " .. info.action,
+        "[[" .. os.date("%Y-%m-%d") .. "]] | " .. info.action .. " | " .. info.log,
       })
       local inject_position = line_num - note.frontmatter_end_line
-      return utils.list_inject(content, new_section, inject_position)
+      return utils.list_inject(content, new_section, inject_position + 1)
     end,
   })
+end
+
+M.log_pos = function(task)
+  local current_note_id
+  local d_note_id
+  if d_note_id == nil then
+    local current_note = client:current_note()
+    if not current_note then
+      vim.print("Current buf is not a note")
+      return
+    end
+    current_note_id = current_note.id
+  else
+    current_note_id = d_note_id
+  end
+
+  local log_note_id = "log-" .. current_note_id
+  local note = find_note(log_note_id)
+  if note == nil then
+    vim.print("No nodes found for this task")
+    return nil
+  end
+
+  local task_id = "#task-" .. string.lower(task.task_id)
+  if note.anchor_links == nil or note.anchor_links[task_id] == nil then
+    vim.print("Can't find task logs in log file")
+  end
+  return find_task_last_line(task_id, note.anchor_links)
 end
 
 M.set_create_log({
