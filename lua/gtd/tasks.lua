@@ -188,6 +188,23 @@ M.assigne_task = function()
   end, opts)
 end
 
+M.push_to_backlog = function()
+  local ctask = M.task_in_current_line()
+  if ctask == nil then
+    vim.print("This line is not a valid task line for modification")
+    return {}
+  end
+  local date = os.date("%Y-%m-%d")
+  local opts = { due_date = os.date("%Y-%m-%d", os.time() + 14 * 24 * 60 * 60) }
+  local task = M.update_task_line(opts)
+  tasklog.set_create_log({
+    task_id = task.task_id,
+    title = task.text,
+    action = "Scheduled",
+    log = "New date:[" .. task.due_date .. "]" .. " moved to backlog",
+  })
+end
+
 M.set_due_date = function()
   local ctask = M.task_in_current_line()
   if ctask == nil then

@@ -17,9 +17,13 @@ local get_items = function()
   for i = 1, 10 do
     local node_id = "1." .. i
     local date_str = os.date("%Y-%m-%d", time)
+    local name = os.date("%A, %Y-%m-%d", time)
+    if i == 10 then
+      name = "Backlog"
+    end
     local date_node = {
       id = node_id,
-      name = os.date("%A, %Y-%m-%d", time),
+      name = name,
       type = "directory",
       --type = "custom",
       --stat_provider = "tasktree-custom",
@@ -27,7 +31,10 @@ local get_items = function()
     }
     local count = 0
     for j, task in pairs(all_results) do
-      if task.due_date and (task.due_date == date_str or (i == 1 and task.due_date < date_str)) then
+      if
+        (task.due_date and (task.due_date == date_str or (i == 1 and task.due_date < date_str)))
+        or (i == 10 and (task.due_date and task.due_date >= date_str))
+      then
         -- log.info(task.due_date)
         if task.status ~= "r" then
           non_repeat_count = non_repeat_count + 1

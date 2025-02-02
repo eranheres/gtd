@@ -7,6 +7,7 @@ log.level = "debug"
 local M = {}
 
 local find_note = function(note_id)
+  print("Finding note: " .. note_id)
   local notes = client:find_notes(
     note_id,
     { notes = {
@@ -109,7 +110,12 @@ M.set_create_log = function(info, d_note_id)
         --"### Log record " .. (log_index + 1),
         --"LOG   : " .. info.log,
         --"ACTION: " .. info.action,
-        "[[" .. os.date("%Y-%m-%d") .. "]] | " .. info.action .. " | " .. info.log,
+        "[["
+          .. os.date("%Y-%m-%d")
+          .. "]] | "
+          .. info.action
+          .. " | "
+          .. info.log,
       })
       local inject_position = line_num - note.frontmatter_end_line
       return utils.list_inject(content, new_section, inject_position + 1)
