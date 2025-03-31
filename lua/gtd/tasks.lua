@@ -9,6 +9,28 @@ log.level = "debug"
 ---@class CustomModule
 local M = {}
 
+-- Event emitter for task changes
+M.events = {
+  listeners = {},
+}
+
+-- Register a listener for task changes
+M.events.on = function(event, callback)
+  if not M.events.listeners[event] then
+    M.events.listeners[event] = {}
+  end
+  table.insert(M.events.listeners[event], callback)
+end
+
+-- Emit an event
+M.events.emit = function(event, ...)
+  if M.events.listeners[event] then
+    for _, callback in ipairs(M.events.listeners[event]) do
+      callback(...)
+    end
+  end
+end
+
 local replace_current_line = function(line)
   local current_buf = vim.api.nvim_get_current_buf()
   local current_line_num = vim.api.nvim_win_get_cursor(0)[1]
@@ -74,6 +96,9 @@ M.new_task = function()
           action = "Created  ",
           log = "Priority to (" .. opts.priority .. ") and due date to (" .. opts.due_date .. ")",
         })
+        
+        -- Emit task created event
+        M.events.emit("task_created", opts)
       end, opts)
     end, opts)
   end, opts)
@@ -100,6 +125,9 @@ M.new_quick_task = function()
   vim.api.nvim_put({ text }, "c", true, true)
   vim.api.nvim_command("normal! 14h")
   vim.api.nvim_command("startinsert")
+  
+  -- Emit task created event
+  M.events.emit("task_created", task)
 end
 
 --
@@ -134,6 +162,9 @@ M.complete_task = function()
       action = "Completed",
       log = opts.note or "",
     })
+    
+    -- Emit task completed event
+    M.events.emit("task_completed", task)
   end, opts)
 end
 
@@ -203,6 +234,9 @@ M.push_to_backlog = function()
     action = "Scheduled",
     log = "New date:[" .. task.due_date .. "]" .. " moved to backlog",
   })
+  
+  -- Emit task updated event
+  M.events.emit("task_updated", task)
 end
 
 M.set_due_date = function()
@@ -229,6 +263,9 @@ M.set_due_date = function()
         action = "Scheduled",
         log = "New date:[" .. task.due_date .. "]" .. reason,
       })
+      
+      -- Emit task updated event
+      M.events.emit("task_updated", task)
     end, opts)
   end, opts)
 end
@@ -251,6 +288,9 @@ M.set_priority = function()
       action = "Set task priority",
       log = "Set priority to (" .. opts.priority .. ")",
     })
+    
+    -- Emit task updated event
+    M.events.emit("task_updated", task)
   end, opts)
 end
 
