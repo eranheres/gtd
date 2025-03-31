@@ -346,7 +346,7 @@ M.show_tasks = function()
     format = format,
     preview = preview,
     actions = actions,
-    layout = { preset = "sidebar", preview = "main" }, -- Use sidebar layout for explorer-like feel
+    layout = { preset = "sidebar", layout = { position = "right" }, preview = "main" }, -- Use sidebar layout on the right side
     focus = "list", -- Focus the list by default
     win = {
       input = {
