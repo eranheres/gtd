@@ -6,61 +6,19 @@ log.level = "debug"
 
 ---@class Config
 ---@field opt string Your config option
----@field use_neotree boolean Use Neo-tree for task display (default: true)
----@field use_snacks boolean Use Snacks picker for task display (default: false)
+---@field use_snacks boolean Use Snacks picker for task display (default: true)
 local config = {
-  use_neotree = false,
   use_snacks = true,
 }
 ---
 ---@class MyModule
 local M = {}
 
-local setup_neotree = function()
-  local neotree = require("neo-tree")
-  if not neotree then
-    log.error("Neotree not found - failed to setup gtd for neotree")
-    return false
-  end
-  neotree.setup({
-        sources = {
-            "filesystem",
-            "buffers",
-            "git_status",
-            -- "example",
-            "tasktree"
-        },
-        example = {
-            -- The config for your source goes here. This is the same as any other source, plus whatever
-            -- special config options you add.
-            --window = {...}
-            --renderers = { ..}
-            --etc
-        },
-        basic = {
-            -- The config for your source goes here. This is the same as any other source, plus whatever
-            -- special config options you add.
-            -- window = {
-            --   mappings = {
-            --     ["<i>"] = "show_debug_info",
-            --   },
-            -- },
-            --renderers = { ..}
-            --etc
-        },
-      })
-  return true
-end
 
--- Function to show tasks using the configured method
+-- Function to show tasks using Snacks picker
 M.show_tasks = function()
-  if M.config.use_snacks then
-    local picker = require("gtd.picker")
-    picker.show_tasks()
-  else
-    -- Use Neo-tree
-    vim.cmd("Neotree source=tasktree")
-  end
+  local picker = require("gtd.picker")
+  picker.show_tasks()
 end
 
 ---
@@ -76,21 +34,8 @@ M.setup = function(args)
   -- Check if Snacks is available
   local has_snacks = package.loaded["snacks"] ~= nil
   
-  -- If Snacks is available and user wants to use it, enable it
-  if has_snacks and args and args.use_snacks then
-    M.config.use_snacks = true
-    M.config.use_neotree = false
-  end
-  
-  -- Setup Neo-tree if needed
-  if M.config.use_neotree then
-    local success = setup_neotree()
-    if not success and has_snacks then
-      -- Fallback to Snacks if Neo-tree setup fails
-      log.info("Falling back to Snacks picker for GTD tasks")
-      M.config.use_snacks = true
-      M.config.use_neotree = false
-    end
+  if not has_snacks then
+    log.error("Snacks.nvim is not available. Please install it first.")
   end
 end
 
