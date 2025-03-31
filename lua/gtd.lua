@@ -21,6 +21,9 @@ M.show_tasks = function()
   picker.show_tasks()
 end
 
+-- Alias for show_tasks to make it more intuitive
+M.tasks = M.show_tasks
+
 ---
 ---@type Config
 M.config = config

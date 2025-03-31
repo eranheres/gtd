@@ -59,7 +59,7 @@ local function get_tasks_by_date()
   return organized_tasks, non_repeat_count
 end
 
--- Format tasks for Snacks picker
+-- Format tasks for Snacks explorer-like picker
 local function format_tasks_for_picker(organized_tasks)
   local items = {}
   local date_names = {}
@@ -79,45 +79,50 @@ local function format_tasks_for_picker(organized_tasks)
   for _, date_name in ipairs(date_names) do
     local date_data = organized_tasks[date_name]
     
-    -- Add a header item for the date
+    -- Add a header item for the date (folder-like)
     table.insert(items, {
       text = date_name .. " (" .. date_data.count .. ")",
-      kind = "header",
+      kind = "folder",
       date_str = date_data.date_str,
-      is_header = true
+      is_folder = true,
+      is_open = true, -- Folders start open by default
+      children = date_data.tasks
     })
     
-    -- Add all tasks for this date
-    for _, task in ipairs(date_data.tasks) do
-      local priority_icons = {
-        A = "⏫",
-        B = "🔼",
-        C = "🔽",
-        D = "⏬"
-      }
-      
-      local icon = task.task.status == "r" and "🔁" or (priority_icons[task.task.priority] or "")
-      local project_name = gtd_obs.get_project_name(task.path) or ""
-      local project_icon = gtd_obs.get_project_icon(task.path) or ""
-      
-      table.insert(items, {
-        text = task.text,
-        path = task.path,
-        line = task.line,
-        task = task.task,
-        kind = "task",
-        icon = icon,
-        project_name = project_name,
-        project_icon = project_icon,
-        date_category = date_name
-      })
+    -- Add all tasks for this date as children
+    if date_data.count > 0 then
+      for _, task in ipairs(date_data.tasks) do
+        local priority_icons = {
+          A = "⏫",
+          B = "🔼",
+          C = "🔽",
+          D = "⏬"
+        }
+        
+        local icon = task.task.status == "r" and "🔁" or (priority_icons[task.task.priority] or "")
+        local project_name = gtd_obs.get_project_name(task.path) or ""
+        local project_icon = gtd_obs.get_project_icon(task.path) or ""
+        
+        table.insert(items, {
+          text = task.text,
+          path = task.path,
+          line = task.line,
+          task = task.task,
+          kind = "task",
+          icon = icon,
+          project_name = project_name,
+          project_icon = project_icon,
+          date_category = date_name,
+          parent_folder = date_name
+        })
+      end
     end
   end
   
   return items
 end
 
--- Open the tasks in Snacks picker
+-- Open the tasks in Snacks picker with explorer-like interface
 M.show_tasks = function()
   -- Check if Snacks is available
   if not package.loaded["snacks"] then
@@ -133,9 +138,10 @@ M.show_tasks = function()
   local format = function(item, picker)
     local highlights = {}
     
-    if item.is_header then
-      -- Format for date headers
-      table.insert(highlights, {"  " .. item.text, "NeoTreeDirectoryName"})
+    if item.is_folder then
+      -- Format for date folders
+      local folder_icon = item.is_open and "󰝰 " or "󰉋 "
+      table.insert(highlights, {folder_icon .. item.text, "NeoTreeDirectoryName"})
     else
       -- Format for tasks
       local indent = "    "
@@ -155,7 +161,7 @@ M.show_tasks = function()
   
   -- Define preview function
   local preview = function(ctx)
-    if not ctx.item or ctx.item.is_header then
+    if not ctx.item or ctx.item.is_folder then
       return false
     end
     
@@ -193,6 +199,27 @@ M.show_tasks = function()
       table.insert(content, "**Project**: " .. ctx.item.project_name)
     end
     
+    -- Try to show file preview with the task highlighted
+    if vim.fn.filereadable(ctx.item.path) == 1 then
+      table.insert(content, "")
+      table.insert(content, "## File Preview")
+      table.insert(content, "```markdown")
+      
+      local file_lines = vim.fn.readfile(ctx.item.path)
+      local start_line = math.max(1, ctx.item.line - 2)
+      local end_line = math.min(#file_lines, ctx.item.line + 3)
+      
+      for i = start_line, end_line do
+        if i == ctx.item.line + 1 then
+          table.insert(content, file_lines[i] .. " <-- CURRENT TASK")
+        else
+          table.insert(content, file_lines[i])
+        end
+      end
+      
+      table.insert(content, "```")
+    end
+    
     ctx.preview.buf = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_lines(ctx.preview.buf, 0, -1, false, content)
     vim.api.nvim_buf_set_option(ctx.preview.buf, "filetype", "markdown")
@@ -202,8 +229,15 @@ M.show_tasks = function()
   
   -- Define actions for tasks
   local actions = {
+    toggle_folder = function(picker, item)
+      if not item or not item.is_folder then return end
+      
+      item.is_open = not item.is_open
+      picker:refresh()
+    end,
+    
     complete_task = function(picker, item)
-      if not item or item.is_header then return end
+      if not item or item.is_folder then return end
       
       -- Navigate to the file and line
       vim.cmd("edit " .. item.path)
@@ -218,7 +252,7 @@ M.show_tasks = function()
     end,
     
     set_due_date = function(picker, item)
-      if not item or item.is_header then return end
+      if not item or item.is_folder then return end
       
       -- Navigate to the file and line
       vim.cmd("edit " .. item.path)
@@ -233,7 +267,7 @@ M.show_tasks = function()
     end,
     
     set_priority = function(picker, item)
-      if not item or item.is_header then return end
+      if not item or item.is_folder then return end
       
       -- Navigate to the file and line
       vim.cmd("edit " .. item.path)
@@ -248,14 +282,20 @@ M.show_tasks = function()
     end,
     
     edit_task = function(picker, item)
-      if not item or item.is_header then return end
+      if not item then return end
       
-      -- Navigate to the file and line
-      vim.cmd("edit " .. item.path)
-      vim.api.nvim_win_set_cursor(0, {item.line + 1, 0})
-      
-      -- Close picker
-      picker:close()
+      if item.is_folder then
+        -- Toggle folder open/closed
+        item.is_open = not item.is_open
+        picker:refresh()
+      else
+        -- Navigate to the file and line
+        vim.cmd("edit " .. item.path)
+        vim.api.nvim_win_set_cursor(0, {item.line + 1, 0})
+        
+        -- Close picker
+        picker:close()
+      end
     end,
     
     new_task = function(picker)
@@ -269,7 +309,7 @@ M.show_tasks = function()
     end,
     
     push_to_backlog = function(picker, item)
-      if not item or item.is_header then return end
+      if not item or item.is_folder then return end
       
       -- Navigate to the file and line
       vim.cmd("edit " .. item.path)
@@ -284,7 +324,7 @@ M.show_tasks = function()
     end,
     
     add_log = function(picker, item)
-      if not item or item.is_header then return end
+      if not item or item.is_folder then return end
       
       -- Navigate to the file and line
       vim.cmd("edit " .. item.path)
@@ -299,13 +339,15 @@ M.show_tasks = function()
     end
   }
   
-  -- Configure and show the Snacks picker
+  -- Configure and show the Snacks picker with explorer-like interface
   Snacks.picker({
     items = items,
     title = "GTD Tasks (" .. non_repeat_count .. ")",
     format = format,
     preview = preview,
     actions = actions,
+    layout = { preset = "sidebar", preview = "main" }, -- Use sidebar layout for explorer-like feel
+    focus = "list", -- Focus the list by default
     win = {
       input = {
         keys = {
@@ -322,6 +364,7 @@ M.show_tasks = function()
       list = {
         keys = {
           ["<CR>"] = "edit_task",
+          ["<Space>"] = "toggle_folder",
           ["c"] = "complete_task",
           ["d"] = "set_due_date",
           ["p"] = "set_priority",
