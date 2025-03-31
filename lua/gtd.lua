@@ -9,8 +9,8 @@ log.level = "debug"
 ---@field use_neotree boolean Use Neo-tree for task display (default: true)
 ---@field use_snacks boolean Use Snacks picker for task display (default: false)
 local config = {
-  use_neotree = true,
-  use_snacks = false,
+  use_neotree = false,
+  use_snacks = true,
 }
 ---
 ---@class MyModule
