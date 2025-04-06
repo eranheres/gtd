@@ -2,3 +2,4 @@ vendor/plenary.nvim
 lua/dummy
 lua/example
 lua/log.txt
+.aider*
