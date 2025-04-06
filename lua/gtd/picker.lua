@@ -70,7 +70,7 @@ local function format_tasks_for_picker(organized_tasks)
     table.insert(date_names, date_name)
   end
 
-  -- Sort date names (keeping "Backlog" at the end)
+  -- Sort date names by date (keeping "Backlog" at the end)
   table.sort(date_names, function(a, b)
     if a == "Backlog" then
       return false
@@ -78,6 +78,14 @@ local function format_tasks_for_picker(organized_tasks)
     if b == "Backlog" then
       return true
     end
+    -- Extract dates from the format "Day of week, YYYY-MM-DD"
+    local a_date = a:match("%d%d%d%d%-%d%d%-%d%d")
+    local b_date = b:match("%d%d%d%d%-%d%d%-%d%d")
+    
+    if a_date and b_date then
+      return a_date < b_date
+    end
+    
     return a < b
   end)
 
