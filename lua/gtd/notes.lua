@@ -1,8 +1,6 @@
 local log = require("plenary.log"):new()
 log.level = "debug"
 
-local Calendar = require("orgmode.objects.calendar")
-local Date = require("orgmode.objects.date")
 local util = require("obsidian.util")
 local client = require("obsidian").get_client()
 

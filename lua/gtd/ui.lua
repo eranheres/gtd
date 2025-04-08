@@ -48,6 +48,10 @@ M.input_prompt = function(title, field, default_value, callback, opts)
 end
 
 M.date_picker = function(title, field_name, callback, opts)
+  if Calendar == nil then
+    callback()
+    return nil
+  end
   Calendar.new({
     Date.today(),
     border = "double",
